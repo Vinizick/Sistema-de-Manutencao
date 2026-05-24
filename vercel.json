@@ -9,6 +9,7 @@
     { "src": "/usuarios.html",     "dest": "/public/usuarios.html" },
     { "src": "/cadastro.html",     "dest": "/public/cadastro.html" },
     { "src": "/equipamentos.html", "dest": "/public/equipamentos.html" },
+    { "src": "/servicos.html",     "dest": "/public/servicos.html" },
     { "src": "/(.*)",              "dest": "server.js" }
   ]
 }

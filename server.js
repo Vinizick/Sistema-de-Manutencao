@@ -127,6 +127,56 @@ app.delete("/equipamentos/:id", async (req, res) => {
   }
 });
 
+/* LISTAR SERVIÇOS */
+app.get("/servicos", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM tbServicos");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+/* CADASTRAR SERVIÇO */
+app.post("/servicos", async (req, res) => {
+  try {
+    const { descricao, valor } = req.body;
+    await db.query(
+      "INSERT INTO tbServicos (descricao, valor) VALUES (?, ?)",
+      [descricao, valor]
+    );
+    res.json({ mensagem: "Serviço cadastrado" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+/* EDITAR SERVIÇO */
+app.put("/servicos/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { descricao, valor } = req.body;
+    await db.query(
+      "UPDATE tbServicos SET descricao=?, valor=? WHERE servico_id=?",
+      [descricao, valor, id]
+    );
+    res.json({ mensagem: "Serviço atualizado" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+/* EXCLUIR SERVIÇO */
+app.delete("/servicos/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.query("DELETE FROM tbServicos WHERE servico_id=?", [id]);
+    res.json({ mensagem: "Serviço removido" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
 /* LISTAR SETORES */
 app.get("/setores", async (req, res) => {
   try {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema TI - Equipamentos</title>
+  <title>Sistema TI - Serviços</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
@@ -27,7 +27,7 @@
     .btn-add { padding: 10px 20px; border: none; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; font-size: 14px; transition: 0.2s; }
     .btn-add:hover { background: #1d4ed8; }
 
-    .card-stat { background: #1e293b; padding: 20px 24px; border-radius: 14px; border-left: 4px solid #f59e0b; display: inline-block; margin-bottom: 32px; min-width: 180px; }
+    .card-stat { background: #1e293b; padding: 20px 24px; border-radius: 14px; border-left: 4px solid #8b5cf6; display: inline-block; margin-bottom: 32px; min-width: 180px; }
     .card-stat h3 { color: #94a3b8; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; }
     .card-stat span { font-size: 36px; font-weight: 700; color: #f1f5f9; }
 
@@ -45,6 +45,8 @@
     tbody td:first-child { color: #64748b; }
     tbody td:nth-child(2) { color: #f1f5f9; font-weight: 500; }
 
+    .valor { color: #4ade80; font-weight: 600; }
+
     .acoes { display: flex; gap: 8px; }
     .btn-editar  { padding: 6px 14px; border: 1px solid #1d4ed8; border-radius: 6px; background: transparent; color: #60a5fa; cursor: pointer; font-size: 13px; transition: 0.2s; }
     .btn-editar:hover  { background: #2563eb; color: white; }
@@ -54,9 +56,7 @@
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: center; }
     .modal-box { width: 440px; background: #1e293b; padding: 32px; border-radius: 20px; }
     .modal-box h2 { margin-bottom: 24px; font-size: 20px; }
-    .modal-box input,
-    .modal-box select { width: 100%; padding: 13px; margin-bottom: 12px; border: 1px solid #334155; border-radius: 10px; background: #0f172a; color: white; font-size: 15px; outline: none; }
-    .modal-box select option { background: #1e293b; }
+    .modal-box input { width: 100%; padding: 13px; margin-bottom: 12px; border: 1px solid #334155; border-radius: 10px; background: #0f172a; color: white; font-size: 15px; outline: none; }
     .modal-btns { display: flex; gap: 10px; margin-top: 8px; }
     .modal-btns button { flex: 1; padding: 13px; border: none; border-radius: 10px; color: white; cursor: pointer; font-size: 15px; }
     .btn-confirmar { background: #2563eb; }
@@ -74,8 +74,8 @@
         <nav>
           <a href="/usuarios.html">📊 Dashboard</a>
           <a href="/usuarios.html">👥 Usuários</a>
-          <a href="/equipamentos.html" class="ativo">🖥️ Equipamentos</a>
-          <a href="#">🔧 Manutenções</a>
+          <a href="/equipamentos.html">🖥️ Equipamentos</a>
+          <a href="/servicos.html" class="ativo">🔧 Serviços</a>
         </nav>
       </div>
       <button class="btn-sair" onclick="sair()">⬅ Sair</button>
@@ -83,24 +83,23 @@
 
     <main class="content">
       <div class="topo">
-        <h1>Equipamentos</h1>
-        <button class="btn-add" id="btnNovo" style="display:none" onclick="abrirModal()">+ Novo Equipamento</button>
+        <h1>Serviços de Manutenção</h1>
+        <button class="btn-add" id="btnNovo" style="display:none" onclick="abrirModal()">+ Novo Serviço</button>
       </div>
 
       <div class="card-stat">
-        <h3>Total de Equipamentos</h3>
-        <span id="totalEquipamentos">0</span>
+        <h3>Total de Serviços</h3>
+        <span id="totalServicos">0</span>
       </div>
 
       <div class="tabela-wrap">
-        <div class="tabela-header"><h2>Lista de Equipamentos</h2></div>
+        <div class="tabela-header"><h2>Lista de Serviços</h2></div>
         <table>
           <thead>
             <tr>
               <th>ID</th>
               <th>Descrição</th>
-              <th>Valor Diária</th>
-              <th>Setor</th>
+              <th>Valor</th>
               <th id="thAcao"></th>
             </tr>
           </thead>
@@ -112,11 +111,10 @@
 
   <div class="modal" id="modal">
     <div class="modal-box">
-      <h2 id="modalTitulo">Novo Equipamento</h2>
-      <input type="hidden"  id="equipamento_id">
-      <input type="text"    id="descricao"    placeholder="Descrição do equipamento">
-      <input type="number"  id="valor_diaria" placeholder="Valor diária (R$)" step="0.01" min="0">
-
+      <h2 id="modalTitulo">Novo Serviço</h2>
+      <input type="hidden" id="servico_id">
+      <input type="text"   id="descricao" placeholder="Descrição do serviço (ex: Formatação, Troca de HD)">
+      <input type="number" id="valor"     placeholder="Valor (R$)" step="0.01" min="0">
       <div class="modal-btns">
         <button class="btn-confirmar" onclick="salvar()">Salvar</button>
         <button class="btn-cancelar"  onclick="fecharModal()">Cancelar</button>
@@ -134,64 +132,50 @@
       document.getElementById("thAcao").textContent = "Ações";
     }
 
-    async function carregarSetores() {
-      const res    = await fetch("/setores");
-      const setores = await res.json();
-      const sel    = document.getElementById("setor_id");
-      setores.forEach(s => {
-        const op = document.createElement("option");
-        op.value       = s.setor_id;
-        op.textContent = s.descricao;
-        sel.appendChild(op);
-      });
-    }
-
     async function carregar() {
-      const res  = await fetch("/equipamentos");
+      const res  = await fetch("/servicos");
       const list = await res.json();
 
-      document.getElementById("totalEquipamentos").innerText = list.length;
+      document.getElementById("totalServicos").innerText = list.length;
 
       const tbody = document.getElementById("tbody");
 
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:#475569">Nenhum equipamento cadastrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:#475569">Nenhum serviço cadastrado.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = list.map(e => {
+      tbody.innerHTML = list.map(s => {
         const acao = isAdmin ? `
           <td class="acoes">
-            <button class="btn-editar"  onclick="abrirEditar(${e.equipamento_id},'${e.descricao}',${e.valor_diaria},'${e.setor||''}')">Editar</button>
-            <button class="btn-excluir" onclick="excluir(${e.equipamento_id})">Excluir</button>
+            <button class="btn-editar"  onclick="abrirEditar(${s.servico_id},'${s.descricao}',${s.valor})">Editar</button>
+            <button class="btn-excluir" onclick="excluir(${s.servico_id})">Excluir</button>
           </td>` : "<td></td>";
 
         return `
           <tr>
-            <td>#${e.equipamento_id}</td>
-            <td>${e.descricao}</td>
-            <td>R$ ${parseFloat(e.valor_diaria).toFixed(2)}</td>
-            <td>${e.setor || "—"}</td>
+            <td>#${s.servico_id}</td>
+            <td>${s.descricao}</td>
+            <td class="valor">R$ ${parseFloat(s.valor).toFixed(2)}</td>
             ${acao}
           </tr>`;
       }).join("");
     }
 
     function abrirModal() {
-      document.getElementById("modalTitulo").textContent = "Novo Equipamento";
-      document.getElementById("equipamento_id").value = "";
-      document.getElementById("descricao").value      = "";
-      document.getElementById("valor_diaria").value   = "";
-      document.getElementById("setor_id").value       = "";
-      document.getElementById("modal").style.display  = "flex";
+      document.getElementById("modalTitulo").textContent = "Novo Serviço";
+      document.getElementById("servico_id").value = "";
+      document.getElementById("descricao").value  = "";
+      document.getElementById("valor").value      = "";
+      document.getElementById("modal").style.display = "flex";
     }
 
-    function abrirEditar(id, descricao, valor, setor) {
-      document.getElementById("modalTitulo").textContent  = "Editar Equipamento";
-      document.getElementById("equipamento_id").value     = id;
-      document.getElementById("descricao").value          = descricao;
-      document.getElementById("valor_diaria").value       = valor;
-      document.getElementById("modal").style.display      = "flex";
+    function abrirEditar(id, descricao, valor) {
+      document.getElementById("modalTitulo").textContent = "Editar Serviço";
+      document.getElementById("servico_id").value = id;
+      document.getElementById("descricao").value  = descricao;
+      document.getElementById("valor").value      = valor;
+      document.getElementById("modal").style.display = "flex";
     }
 
     function fecharModal() {
@@ -199,20 +183,19 @@
     }
 
     async function salvar() {
-      const id          = document.getElementById("equipamento_id").value;
-      const descricao   = document.getElementById("descricao").value.trim();
-      const valor_diaria = document.getElementById("valor_diaria").value;
-      const setor_id    = null;
+      const id       = document.getElementById("servico_id").value;
+      const descricao = document.getElementById("descricao").value.trim();
+      const valor    = document.getElementById("valor").value;
 
-      if (!descricao || !valor_diaria) { alert("Preencha todos os campos obrigatórios."); return; }
+      if (!descricao || !valor) { alert("Preencha todos os campos."); return; }
 
       const method = id ? "PUT" : "POST";
-      const url    = id ? `/equipamentos/${id}` : "/equipamentos";
+      const url    = id ? `/servicos/${id}` : "/servicos";
 
       await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ descricao, valor_diaria, setor_id }),
+        body: JSON.stringify({ descricao, valor }),
       });
 
       fecharModal();
@@ -220,8 +203,8 @@
     }
 
     async function excluir(id) {
-      if (!confirm("Deseja excluir este equipamento?")) return;
-      await fetch(`/equipamentos/${id}`, { method: "DELETE" });
+      if (!confirm("Deseja excluir este serviço?")) return;
+      await fetch(`/servicos/${id}`, { method: "DELETE" });
       carregar();
     }
 
