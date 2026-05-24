@@ -28,8 +28,8 @@ app.post("/login", async (req, res) => {
   // Checa usuários do banco
   try {
     const [rows] = await db.query(
-      "SELECT * FROM tbusuarios WHERE email = ? AND senha = ?",
-      [email, senha]
+      "SELECT * FROM seguranca.tbUsuarios WHERE login = ? AND senha = ?",
+      [email, senha]  // "email" aqui é o valor digitado no campo, que é o login
     );
 
     if (rows.length > 0) {
@@ -45,7 +45,7 @@ app.post("/login", async (req, res) => {
 /* LISTAR USUÁRIOS */
 app.get("/usuarios", async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM tbusuarios");
+    const [rows] = await db.query("SELECT usuario_id, nome, login FROM seguranca.tbUsuarios");
     res.json(rows);
   } catch (err) {
     res.status(500).json(err);
@@ -55,10 +55,10 @@ app.get("/usuarios", async (req, res) => {
 /* CADASTRAR USUÁRIO */
 app.post("/usuarios", async (req, res) => {
   try {
-    const { nome, email, senha } = req.body;
+    const { nome, login, senha } = req.body;
     await db.query(
-      "INSERT INTO tbusuarios (nome, email, senha) VALUES (?, ?, ?)",
-      [nome, email, senha]
+      "INSERT INTO seguranca.tbUsuarios (nome, login, senha) VALUES (?, ?, ?)",
+      [nome, login, senha]
     );
     res.json({ mensagem: "Usuário cadastrado" });
   } catch (err) {
@@ -70,7 +70,7 @@ app.post("/usuarios", async (req, res) => {
 app.delete("/usuarios/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    await db.query("DELETE FROM tbusuarios WHERE id = ?", [id]);
+    await db.query("DELETE FROM seguranca.tbUsuarios WHERE usuario_id = ?", [id]);
     res.json({ mensagem: "Usuário removido" });
   } catch (err) {
     res.status(500).json(err);

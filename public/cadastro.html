@@ -30,7 +30,7 @@
     }
 
     .box h1 { font-size: 36px; margin-bottom: 8px; }
-    .box p  { color: #94a3b8; margin-bottom: 28px; }
+    .box p.sub { color: #94a3b8; margin-bottom: 28px; }
 
     .box input {
       width: 100%;
@@ -60,6 +60,8 @@
     #msg {
       margin-bottom: 12px;
       font-size: 14px;
+      padding: 10px;
+      border-radius: 8px;
       display: none;
     }
 
@@ -77,9 +79,9 @@
 <body>
   <div class="box">
     <h1>Criar Conta</h1>
-    <p>Preencha os dados para se cadastrar</p>
+    <p class="sub">Preencha os dados para se cadastrar</p>
 
-    <input type="text"     id="nome"  placeholder="Nome">
+    <input type="text"     id="nome"  placeholder="Nome completo">
     <input type="text"     id="login" placeholder="Login">
     <input type="password" id="senha" placeholder="Senha">
 
@@ -90,34 +92,40 @@
   </div>
 
   <script>
+    function mostrarMsg(texto, cor) {
+      const msg = document.getElementById("msg");
+      msg.style.color      = cor;
+      msg.style.background = cor === "#4ade80" ? "#052e16" : "#2d0a0a";
+      msg.style.display    = "block";
+      msg.textContent      = texto;
+    }
+
     async function cadastrar() {
       const nome  = document.getElementById("nome").value.trim();
-      const email = document.getElementById("email").value.trim();
+      const login = document.getElementById("login").value.trim();
       const senha = document.getElementById("senha").value;
-      const msg   = document.getElementById("msg");
 
-      if (!nome || !email || !senha) {
-        msg.style.color   = "#f87171";
-        msg.style.display = "block";
-        msg.textContent   = "Preencha todos os campos.";
+      if (!nome || !login || !senha) {
+        mostrarMsg("Preencha todos os campos.", "#f87171");
         return;
       }
 
-      const res = await fetch("/usuarios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, login, senha }),
-      });
+      try {
+        const res  = await fetch("/usuarios", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, login, senha }),
+        });
+        const data = await res.json();
 
-      if (res.ok) {
-        msg.style.color   = "#4ade80";
-        msg.style.display = "block";
-        msg.textContent   = "Cadastro realizado! Redirecionando...";
-        setTimeout(() => window.location.href = "/login.html", 1500);
-      } else {
-        msg.style.color   = "#f87171";
-        msg.style.display = "block";
-        msg.textContent   = "Erro ao cadastrar. Tente novamente.";
+        if (res.ok) {
+          mostrarMsg("Cadastro realizado! Redirecionando...", "#4ade80");
+          setTimeout(() => window.location.href = "/login.html", 1500);
+        } else {
+          mostrarMsg("Erro: " + (data.sqlMessage || data.mensagem || JSON.stringify(data)), "#f87171");
+        }
+      } catch (err) {
+        mostrarMsg("Erro de conexão: " + err.message, "#f87171");
       }
     }
   </script>
