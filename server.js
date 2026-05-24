@@ -16,6 +16,11 @@ const ADMIN = {
   senha: "admin123",
 };
 
+/* REDIRECIONA RAIZ PARA LOGIN */
+app.get("/", (req, res) => {
+  res.redirect("/login.html");
+});
+
 /* LOGIN */
 app.post("/login", async (req, res) => {
   const { email, senha } = req.body;
