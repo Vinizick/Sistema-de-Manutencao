@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema TI - Cadastro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      height: 100vh;
+      background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+        url("https://images.unsplash.com/photo-1518770660439-4636190af475");
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
+
+    .box {
+      width: 400px;
+      background: rgba(15,23,42,0.95);
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    }
+
+    .box h1 { font-size: 36px; margin-bottom: 8px; }
+    .box p  { color: #94a3b8; margin-bottom: 28px; }
+
+    .box input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 16px;
+      border: none;
+      border-radius: 10px;
+      background: #1e293b;
+      color: white;
+      font-size: 16px;
+    }
+
+    .box button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .box button:hover { background: #1d4ed8; }
+
+    #msg {
+      margin-bottom: 12px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .voltar {
+      display: block;
+      margin-top: 16px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .voltar:hover { color: white; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Criar Conta</h1>
+    <p>Preencha os dados para se cadastrar</p>
+
+    <input type="text"     id="nome"  placeholder="Nome">
+    <input type="text"     id="login" placeholder="Login">
+    <input type="password" id="senha" placeholder="Senha">
+
+    <p id="msg"></p>
+
+    <button onclick="cadastrar()">Cadastrar</button>
+    <a class="voltar" href="/login.html">← Voltar para o login</a>
+  </div>
+
+  <script>
+    async function cadastrar() {
+      const nome  = document.getElementById("nome").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value;
+      const msg   = document.getElementById("msg");
+
+      if (!nome || !email || !senha) {
+        msg.style.color   = "#f87171";
+        msg.style.display = "block";
+        msg.textContent   = "Preencha todos os campos.";
+        return;
+      }
+
+      const res = await fetch("/usuarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, login, senha }),
+      });
+
+      if (res.ok) {
+        msg.style.color   = "#4ade80";
+        msg.style.display = "block";
+        msg.textContent   = "Cadastro realizado! Redirecionando...";
+        setTimeout(() => window.location.href = "/login.html", 1500);
+      } else {
+        msg.style.color   = "#f87171";
+        msg.style.display = "block";
+        msg.textContent   = "Erro ao cadastrar. Tente novamente.";
+      }
+    }
+  </script>
+</body>
+</html>

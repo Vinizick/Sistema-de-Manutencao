@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema TI - Login</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      height: 100vh;
+      background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+        url("https://images.unsplash.com/photo-1518770660439-4636190af475");
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
+
+    .login-box {
+      width: 400px;
+      background: rgba(15,23,42,0.95);
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    }
+
+    .login-box h1 { font-size: 42px; margin-bottom: 10px; }
+    .login-box p  { color: #94a3b8; margin-bottom: 30px; }
+
+    .login-box input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 10px;
+      background: #1e293b;
+      color: white;
+      font-size: 16px;
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .login-box button:hover { background: #1d4ed8; }
+
+    #erro {
+      color: #f87171;
+      margin-bottom: 12px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h1>Sistema TI</h1>
+    <p>Gerenciamento de Manutenção</p>
+
+    <input type="email" id="email" placeholder="E-mail">
+    <input type="password" id="senha" placeholder="Senha">
+    <p id="erro">E-mail ou senha incorretos.</p>
+    <button onclick="login()">Entrar</button>
+    <a href="/cadastro.html" style="display:block; margin-top:16px; color:#94a3b8; text-decoration:none; font-size:14px;">
+      Não tem conta? Cadastre-se
+    </a>
+  </div>
+
+  <script>
+    async function login() {
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
+
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, senha }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        sessionStorage.setItem("admin", data.admin ? "true" : "false");
+        window.location.href = "/usuarios.html";
+      } else {
+        document.getElementById("erro").style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>

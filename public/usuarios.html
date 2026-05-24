@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema TI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 250px;
+      background: #020617;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .sidebar h2 { font-size: 28px; margin-bottom: 40px; }
+
+    .sidebar nav { display: flex; flex-direction: column; gap: 20px; }
+
+    .sidebar nav a { color: #cbd5e1; text-decoration: none; font-size: 18px; }
+
+    .sidebar .btn-sair {
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #dc2626;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .content { flex: 1; padding: 40px; }
+
+    .topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .topo h1 { font-size: 42px; }
+
+    .btn-add {
+      padding: 15px 25px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .cards-dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 50px;
+    }
+
+    .info-card { background: #1e293b; padding: 30px; border-radius: 20px; }
+    .info-card h3 { color: #94a3b8; margin-bottom: 15px; }
+    .info-card span { font-size: 42px; font-weight: bold; }
+
+    .titulo-lista { margin-bottom: 30px; }
+
+    #usuarios {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card { background: #1e293b; padding: 25px; border-radius: 20px; }
+    .card h2 { margin-bottom: 10px; }
+    .card p { color: #cbd5e1; margin-bottom: 20px; }
+
+    .card button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #dc2626;
+      color: white;
+      cursor: pointer;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-box { width: 400px; background: #1e293b; padding: 30px; border-radius: 20px; }
+    .modal-box h2 { margin-bottom: 20px; }
+
+    .modal-box input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #0f172a;
+      color: white;
+      font-size: 16px;
+    }
+
+    .modal-box button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    .btn-fechar { background: #dc2626 !important; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+
+    <aside class="sidebar">
+      <div>
+        <h2>Sistema TI</h2>
+        <nav>
+          <a href="#">Dashboard</a>
+          <a href="#">Usuários</a>
+          <a href="#">Manutenções</a>
+          <a href="#">Equipamentos</a>
+        </nav>
+      </div>
+      <button class="btn-sair" onclick="window.location.href='/login.html'">Sair</button>
+    </aside>
+
+    <main class="content">
+      <div class="topo">
+        <h1>Dashboard</h1>
+        <button class="btn-add" onclick="abrirModal()">+ Novo Usuário</button>
+      </div>
+
+      <div class="cards-dashboard">
+        <div class="info-card">
+          <h3>Usuários</h3>
+          <span id="totalUsuarios">0</span>
+        </div>
+        <div class="info-card">
+          <h3>Manutenções</h3>
+          <span>12</span>
+        </div>
+        <div class="info-card">
+          <h3>Equipamentos</h3>
+          <span>28</span>
+        </div>
+      </div>
+
+      <h2 class="titulo-lista">Usuários do Sistema</h2>
+      <div id="usuarios"></div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-box">
+      <h2>Novo Usuário</h2>
+      <input type="text"     id="nome"  placeholder="Nome">
+      <input type="text"     id="login" placeholder="Login">
+      <input type="password" id="senha" placeholder="Senha">
+      <button onclick="cadastrarUsuario()">Cadastrar</button>
+      <button class="btn-fechar" onclick="fecharModal()">Fechar</button>
+    </div>
+  </div>
+
+  <script>
+    // Bloqueia acesso se não for admin
+    const isAdmin = sessionStorage.getItem("admin") === "true";
+    if (!isAdmin) {
+      document.body.innerHTML = `
+        <div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#0f172a;color:white;flex-direction:column;gap:20px;font-family:Arial">
+          <h1 style="font-size:32px">Acesso negado</h1>
+          <p style="color:#94a3b8">Apenas o administrador pode acessar esta página.</p>
+          <a href="/login.html" style="color:#2563eb">← Voltar ao login</a>
+        </div>`;
+    }
+
+    async function carregarUsuarios() {
+      try {
+        const res      = await fetch("/usuarios");
+        const usuarios = await res.json();
+
+        document.getElementById("totalUsuarios").innerText = usuarios.length;
+
+        const container = document.getElementById("usuarios");
+        container.innerHTML = "";
+
+        usuarios.forEach(u => {
+          container.innerHTML += `
+            <div class="card">
+              <h2>${u.nome}</h2>
+              <p>${u.login}</p>
+              <button onclick="deletarUsuario(${u.usuario_id})">Excluir</button>
+            </div>`;
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function deletarUsuario(id) {
+      await fetch(`/usuarios/${id}`, { method: "DELETE" });
+      carregarUsuarios();
+    }
+
+    async function cadastrarUsuario() {
+      const nome  = document.getElementById("nome").value;
+      const login = document.getElementById("login").value;
+      const senha = document.getElementById("senha").value;
+
+      await fetch("/usuarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, login, senha }),
+      });
+
+      fecharModal();
+      carregarUsuarios();
+    }
+
+    function abrirModal()  { document.getElementById("modal").style.display = "flex"; }
+    function fecharModal() { document.getElementById("modal").style.display = "none"; }
+
+    carregarUsuarios();
+  </script>
+</body>
+</html>
