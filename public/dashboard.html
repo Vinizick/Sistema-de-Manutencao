@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema TI - Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
+    .layout { display: flex; min-height: 100vh; }
+
+    .sidebar { width: 250px; background: #020617; padding: 30px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
+    .sidebar h2 { font-size: 24px; margin-bottom: 8px; color: #e2e8f0; }
+    .sidebar small { color: #475569; font-size: 12px; display: block; margin-bottom: 40px; }
+    .sidebar nav { display: flex; flex-direction: column; gap: 8px; }
+    .sidebar nav a { color: #94a3b8; text-decoration: none; font-size: 15px; padding: 10px 14px; border-radius: 8px; transition: 0.2s; }
+    .sidebar nav a:hover, .sidebar nav a.ativo { background: #0f172a; color: white; }
+    .btn-sair { padding: 12px; border: none; border-radius: 10px; background: #7f1d1d; color: #fca5a5; cursor: pointer; font-size: 14px; }
+    .btn-sair:hover { background: #dc2626; color: white; }
+
+    .content { flex: 1; padding: 40px; }
+    .topo { margin-bottom: 32px; }
+    .topo h1 { font-size: 28px; font-weight: 700; color: #f1f5f9; }
+    .topo p  { color: #64748b; margin-top: 4px; font-size: 14px; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 16px; margin-bottom: 32px; }
+    .card-stat { background: #1e293b; padding: 24px; border-radius: 14px; border-left: 4px solid #2563eb; }
+    .card-stat h3 { color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+    .card-stat span { font-size: 38px; font-weight: 700; color: #f1f5f9; }
+    .card-stat .sub { font-size: 12px; color: #475569; margin-top: 4px; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .painel { background: #1e293b; border-radius: 16px; overflow: hidden; }
+    .painel-header { padding: 20px 24px; border-bottom: 1px solid #334155; }
+    .painel-header h2 { font-size: 15px; color: #e2e8f0; }
+
+    /* Barra de progresso */
+    .barra-wrap { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+    .barra-item h4 { font-size: 13px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .barra-bg { background: #0f172a; border-radius: 999px; height: 10px; overflow: hidden; }
+    .barra-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+
+    /* Recentes */
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: #0f172a; }
+    thead th { padding: 12px 20px; text-align: left; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.07em; }
+    tbody tr { border-bottom: 1px solid #0f172a; transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #263347; }
+    tbody td { padding: 14px 20px; font-size: 13px; color: #cbd5e1; }
+
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .badge-espera    { background: #2d2a1a; color: #facc15; }
+    .badge-andamento { background: #1a2d3a; color: #60a5fa; }
+    .badge-finalizado{ background: #1a3a2a; color: #4ade80; }
+    .valor { color: #4ade80; font-weight: 600; }
+
+    @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div>
+        <h2>Sistema TI</h2>
+        <small>Manutenção de Equipamentos</small>
+        <nav>
+          <a href="/dashboard.html" class="ativo">📊 Dashboard</a>
+          <a href="/usuarios.html">👥 Usuários</a>
+          <a href="/equipamentos.html">🖥️ Equipamentos</a>
+          <a href="/manutencoes.html">🔧 Manutenções</a>
+        </nav>
+      </div>
+      <button class="btn-sair" onclick="sair()">⬅ Sair</button>
+    </aside>
+
+    <main class="content">
+      <div class="topo">
+        <h1>Dashboard</h1>
+        <p id="dataHora"></p>
+      </div>
+
+      <div class="cards">
+        <div class="card-stat" style="border-left-color:#2563eb">
+          <h3>Usuários</h3>
+          <span id="totalUsuarios">—</span>
+          <div class="sub">cadastrados no sistema</div>
+        </div>
+        <div class="card-stat" style="border-left-color:#f59e0b">
+          <h3>Equipamentos</h3>
+          <span id="totalEquipamentos">—</span>
+          <div class="sub">ativos</div>
+        </div>
+        <div class="card-stat" style="border-left-color:#8b5cf6">
+          <h3>Manutenções</h3>
+          <span id="totalManutencoes">—</span>
+          <div class="sub">registradas</div>
+        </div>
+        <div class="card-stat" style="border-left-color:#facc15">
+          <h3>Em Espera</h3>
+          <span id="emEspera">—</span>
+          <div class="sub">aguardando atendimento</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+
+        <!-- Gráfico de status -->
+        <div class="painel">
+          <div class="painel-header"><h2>📊 Status das Manutenções</h2></div>
+          <div class="barra-wrap">
+            <div class="barra-item">
+              <h4><span>Em Espera</span><span id="pctEspera">0%</span></h4>
+              <div class="barra-bg"><div class="barra-fill" id="barEspera" style="width:0%;background:#facc15"></div></div>
+            </div>
+            <div class="barra-item">
+              <h4><span>Em Andamento</span><span id="pctAndamento">0%</span></h4>
+              <div class="barra-bg"><div class="barra-fill" id="barAndamento" style="width:0%;background:#60a5fa"></div></div>
+            </div>
+            <div class="barra-item">
+              <h4><span>Finalizados</span><span id="pctFinalizado">0%</span></h4>
+              <div class="barra-bg"><div class="barra-fill" id="barFinalizado" style="width:0%;background:#4ade80"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Últimas manutenções -->
+        <div class="painel">
+          <div class="painel-header"><h2>🕐 Últimas Manutenções</h2></div>
+          <table>
+            <thead>
+              <tr><th>Equipamento</th><th>Data</th><th>Status</th></tr>
+            </thead>
+            <tbody id="tbody-recentes">
+              <tr><td colspan="3" style="text-align:center;padding:20px;color:#475569">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    if (!sessionStorage.getItem("admin")) window.location.href = "/login.html";
+
+    // Data e hora atual
+    function atualizarHora() {
+      document.getElementById("dataHora").textContent =
+        new Date().toLocaleString('pt-BR', { weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+    atualizarHora();
+    setInterval(atualizarHora, 1000);
+
+    function badgeStatus(s) {
+      const map = { "Em Espera":"badge-espera", "Em Andamento":"badge-andamento", "Finalizado":"badge-finalizado" };
+      return `<span class="badge ${map[s]||''}">${s}</span>`;
+    }
+
+    async function carregarDashboard() {
+      const res  = await fetch("/dashboard");
+      const data = await res.json();
+
+      document.getElementById("totalUsuarios").textContent    = data.totalUsuarios;
+      document.getElementById("totalEquipamentos").textContent = data.totalEquipamentos;
+      document.getElementById("totalManutencoes").textContent = data.totalManutencoes;
+      document.getElementById("emEspera").textContent         = data.emEspera;
+
+      // Barras de progresso
+      const total = data.totalManutencoes || 1;
+      const pctE  = Math.round((data.emEspera    / total) * 100);
+      const pctA  = Math.round((data.emAndamento / total) * 100);
+      const pctF  = Math.round((data.finalizados / total) * 100);
+
+      document.getElementById("pctEspera").textContent    = pctE + "%";
+      document.getElementById("pctAndamento").textContent = pctA + "%";
+      document.getElementById("pctFinalizado").textContent= pctF + "%";
+      setTimeout(() => {
+        document.getElementById("barEspera").style.width    = pctE + "%";
+        document.getElementById("barAndamento").style.width = pctA + "%";
+        document.getElementById("barFinalizado").style.width= pctF + "%";
+      }, 100);
+
+      // Recentes
+      const tbody = document.getElementById("tbody-recentes");
+      if (!data.recentes.length) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:20px;color:#475569">Nenhuma manutenção.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = data.recentes.map(m => `
+        <tr>
+          <td>${m.equipamento || '—'}</td>
+          <td>${m.data ? new Date(m.data).toLocaleDateString('pt-BR') : '—'}</td>
+          <td>${badgeStatus(m.status || 'Em Espera')}</td>
+        </tr>`).join("");
+    }
+
+    function sair() { sessionStorage.clear(); window.location.href = "/login.html"; }
+
+    carregarDashboard();
+  </script>
+</body>
+</html>

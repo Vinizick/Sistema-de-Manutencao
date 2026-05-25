@@ -76,11 +76,7 @@ app.post("/usuarios", async (req, res) => {
 /* LISTAR EQUIPAMENTOS */
 app.get("/equipamentos", async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT e.equipamento_id, e.descricao, e.valor_diaria, s.descricao AS setor
-      FROM material.tbEquipamento e
-      LEFT JOIN tbSetor s ON e.setor_id = s.setor_id
-    `);
+    const [rows] = await db.query("SELECT equipamento_id, descricao, valor_diaria, especificacoes FROM material.tbEquipamento");
     res.json(rows);
   } catch (err) {
     res.status(500).json(err);
@@ -91,11 +87,11 @@ app.get("/equipamentos", async (req, res) => {
 app.post("/equipamentos", async (req, res) => {
   try {
     const { descricao, valor_diaria, setor_id } = req.body;
-    await db.query(
+    const [result] = await db.query(
       "INSERT INTO material.tbEquipamento (descricao, valor_diaria, setor_id) VALUES (?, ?, ?)",
       [descricao, valor_diaria, setor_id || null]
     );
-    res.json({ mensagem: "Equipamento cadastrado" });
+    res.json({ mensagem: "Equipamento cadastrado", insertId: result.insertId });
   } catch (err) {
     res.status(500).json(err);
   }
@@ -105,10 +101,10 @@ app.post("/equipamentos", async (req, res) => {
 app.put("/equipamentos/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { descricao, valor_diaria, setor_id } = req.body;
+    const { descricao, valor_diaria, especificacoes } = req.body;
     await db.query(
-      "UPDATE material.tbEquipamento SET descricao=?, valor_diaria=?, setor_id=? WHERE equipamento_id=?",
-      [descricao, valor_diaria, setor_id || null, id]
+      "UPDATE material.tbEquipamento SET descricao=?, valor_diaria=?, especificacoes=? WHERE equipamento_id=?",
+      [descricao, valor_diaria, especificacoes || null, id]
     );
     res.json({ mensagem: "Equipamento atualizado" });
   } catch (err) {
@@ -122,6 +118,86 @@ app.delete("/equipamentos/:id", async (req, res) => {
     const { id } = req.params;
     await db.query("DELETE FROM material.tbEquipamento WHERE equipamento_id=?", [id]);
     res.json({ mensagem: "Equipamento removido" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+/* DASHBOARD */
+app.get("/dashboard", async (req, res) => {
+  try {
+    const [[{ totalUsuarios }]]    = await db.query("SELECT COUNT(*) AS totalUsuarios FROM seguranca.tbUsuarios");
+    const [[{ totalEquipamentos }]]= await db.query("SELECT COUNT(*) AS totalEquipamentos FROM material.tbEquipamento");
+    const [[{ totalManutencoes }]] = await db.query("SELECT COUNT(*) AS totalManutencoes FROM manutencao.tbHistorico");
+    const [[{ emEspera }]]         = await db.query("SELECT COUNT(*) AS emEspera FROM manutencao.tbHistorico WHERE status='Em Espera'");
+    const [[{ emAndamento }]]      = await db.query("SELECT COUNT(*) AS emAndamento FROM manutencao.tbHistorico WHERE status='Em Andamento'");
+    const [[{ finalizados }]]      = await db.query("SELECT COUNT(*) AS finalizados FROM manutencao.tbHistorico WHERE status='Finalizado'");
+    const [recentes]               = await db.query(`
+      SELECT h.historico_id, h.data, h.status, h.valor,
+             e.descricao AS equipamento
+      FROM manutencao.tbHistorico h
+      LEFT JOIN material.tbEquipamento e ON h.equipamento_id = e.equipamento_id
+      ORDER BY h.data DESC LIMIT 5
+    `);
+    res.json({ totalUsuarios: totalUsuarios + 1, totalEquipamentos, totalManutencoes, emEspera, emAndamento, finalizados, recentes });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+/* LISTAR HISTÓRICO */
+app.get("/manutencoes", async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT h.historico_id, h.data, h.laudo, h.valor, h.equipamento_id, h.status,
+             e.descricao AS equipamento,
+             s.descricao AS servico
+      FROM manutencao.tbHistorico h
+      LEFT JOIN material.tbEquipamento e ON h.equipamento_id = e.equipamento_id
+      LEFT JOIN tbServicos s ON h.servico_id = s.servico_id
+      ORDER BY h.data DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+/* CADASTRAR MANUTENÇÃO */
+app.post("/manutencoes", async (req, res) => {
+  try {
+    const { data, laudo, servico_id, equipamento_id, valor, status } = req.body;
+    await db.query(
+      "INSERT INTO manutencao.tbHistorico (data, laudo, servico_id, equipamento_id, valor, status) VALUES (?, ?, ?, ?, ?, ?)",
+      [data, laudo, servico_id, equipamento_id, valor, status || 'Em Espera']
+    );
+    res.json({ mensagem: "Manutenção registrada" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+/* EDITAR MANUTENÇÃO */
+app.put("/manutencoes/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data, laudo, servico_id, equipamento_id, valor, status } = req.body;
+    await db.query(
+      "UPDATE manutencao.tbHistorico SET data=?, laudo=?, servico_id=?, equipamento_id=?, valor=?, status=? WHERE historico_id=?",
+      [data, laudo, servico_id, equipamento_id, valor, status || 'Em Espera', id]
+    );
+    res.json({ mensagem: "Manutenção atualizada" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+/* EXCLUIR MANUTENÇÃO */
+app.delete("/manutencoes/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.query("DELETE FROM manutencao.tbHistorico WHERE historico_id=?", [id]);
+    res.json({ mensagem: "Manutenção removida" });
   } catch (err) {
     res.status(500).json(err);
   }

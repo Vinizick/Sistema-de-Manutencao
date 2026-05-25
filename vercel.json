@@ -5,11 +5,11 @@
     { "src": "public/**", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/login.html",        "dest": "/public/login.html" },
+    { "src": "/dashboard.html",    "dest": "/public/dashboard.html" },
     { "src": "/usuarios.html",     "dest": "/public/usuarios.html" },
     { "src": "/cadastro.html",     "dest": "/public/cadastro.html" },
     { "src": "/equipamentos.html", "dest": "/public/equipamentos.html" },
-    { "src": "/servicos.html",     "dest": "/public/servicos.html" },
+    { "src": "/manutencoes.html",  "dest": "/public/manutencoes.html" },
     { "src": "/(.*)",              "dest": "server.js" }
   ]
 }
