@@ -3,21 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema TI</title>
+  <title>Sistema TI - Usuários</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f172a; color: white; font-family: Arial, sans-serif; }
     .layout { display: flex; min-height: 100vh; }
 
-    .sidebar {
-      width: 250px; background: #020617; padding: 30px;
-      display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0;
-    }
+    .sidebar { width: 250px; background: #020617; padding: 30px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
     .sidebar h2 { font-size: 24px; margin-bottom: 8px; color: #e2e8f0; }
     .sidebar small { color: #475569; font-size: 12px; display: block; margin-bottom: 40px; }
     .sidebar nav { display: flex; flex-direction: column; gap: 8px; }
     .sidebar nav a { color: #94a3b8; text-decoration: none; font-size: 15px; padding: 10px 14px; border-radius: 8px; transition: 0.2s; }
-    .sidebar nav a:hover { background: #0f172a; color: white; }
+    .sidebar nav a:hover, .sidebar nav a.ativo { background: #0f172a; color: white; }
     .btn-sair { padding: 12px; border: none; border-radius: 10px; background: #7f1d1d; color: #fca5a5; cursor: pointer; font-size: 14px; transition: 0.2s; }
     .btn-sair:hover { background: #dc2626; color: white; }
 
@@ -33,17 +30,13 @@
     .card-stat span { font-size: 36px; font-weight: 700; color: #f1f5f9; }
 
     .tabela-wrap { background: #1e293b; border-radius: 16px; overflow: hidden; }
-    .tabela-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #334155; }
+    .tabela-header { padding: 20px 24px; border-bottom: 1px solid #334155; }
     .tabela-header h2 { font-size: 16px; color: #e2e8f0; }
 
     table { width: 100%; border-collapse: collapse; }
     thead tr { background: #0f172a; }
     thead th { padding: 14px 20px; text-align: left; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
-
-    .acoes { display: flex; gap: 8px; }
-    .btn-editar  { padding: 6px 14px; border: 1px solid #1d4ed8; border-radius: 6px; background: transparent; color: #60a5fa; cursor: pointer; font-size: 13px; transition: 0.2s; }
-    .btn-editar:hover  { background: #2563eb; color: white; border-color: #2563eb; }
-    tbody tr { border-bottom: 1px solid #1e293b; transition: background 0.15s; }
+    tbody tr { border-bottom: 1px solid #0f172a; transition: background 0.15s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: #263347; }
     tbody td { padding: 16px 20px; font-size: 14px; color: #cbd5e1; }
@@ -54,11 +47,14 @@
     .badge-admin   { background: #1e3a5f; color: #60a5fa; }
     .badge-usuario { background: #1a3a2a; color: #4ade80; }
 
-    .btn-excluir { padding: 6px 14px; border: none; border-radius: 6px; background: transparent; color: #f87171; border: 1px solid #7f1d1d; cursor: pointer; font-size: 13px; transition: 0.2s; }
-    .btn-excluir:hover { background: #dc2626; color: white; border-color: #dc2626; }
+    .acoes { display: flex; gap: 8px; }
+    .btn-editar  { padding: 6px 14px; border: 1px solid #1d4ed8; border-radius: 6px; background: transparent; color: #60a5fa; cursor: pointer; font-size: 13px; transition: 0.2s; }
+    .btn-editar:hover  { background: #2563eb; color: white; }
+    .btn-excluir { padding: 6px 14px; border: 1px solid #7f1d1d; border-radius: 6px; background: transparent; color: #f87171; cursor: pointer; font-size: 13px; transition: 0.2s; }
+    .btn-excluir:hover { background: #dc2626; color: white; }
 
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: center; }
-    .modal-box { width: 420px; background: #1e293b; padding: 32px; border-radius: 20px; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+    .modal-box { width: 420px; background: #1e293b; padding: 32px; border-radius: 20px; }
     .modal-box h2 { margin-bottom: 24px; font-size: 20px; }
     .modal-box input { width: 100%; padding: 13px; margin-bottom: 12px; border: 1px solid #334155; border-radius: 10px; background: #0f172a; color: white; font-size: 15px; outline: none; }
     .modal-btns { display: flex; gap: 10px; margin-top: 8px; }
@@ -76,10 +72,10 @@
         <h2>Sistema TI</h2>
         <small>Manutenção de Equipamentos</small>
         <nav>
-          <a href="#">📊 Dashboard</a>
-          <a href="#">👥 Usuários</a>
-          <a href="/manutencoes.html">🔧 Manutenções</a>
+          <a href="/dashboard.html">📊 Dashboard</a>
+          <a href="/usuarios.html" class="ativo">👥 Usuários</a>
           <a href="/equipamentos.html">🖥️ Equipamentos</a>
+          <a href="/manutencoes.html">🔧 Manutenções</a>
         </nav>
       </div>
       <button class="btn-sair" onclick="sair()">⬅ Sair</button>
@@ -108,7 +104,8 @@
               <th>Login</th>
               <th>Perfil</th>
               <th id="thAcao" style="display:none">Ação</th>
-            </tr>          </thead>
+            </tr>
+          </thead>
           <tbody id="tbody-usuarios">
             <tr><td colspan="5" style="text-align:center;padding:30px;color:#475569">Carregando...</td></tr>
           </tbody>
@@ -117,6 +114,7 @@
     </main>
   </div>
 
+  <!-- Modal Novo Usuário -->
   <div class="modal" id="modal">
     <div class="modal-box">
       <h2>Novo Usuário</h2>
@@ -130,16 +128,27 @@
     </div>
   </div>
 
+  <!-- Modal Editar Usuário -->
+  <div class="modal" id="modal-editar">
+    <div class="modal-box">
+      <h2>Editar Usuário</h2>
+      <input type="hidden"   id="edit-id">
+      <input type="text"     id="edit-nome"  placeholder="Nome completo">
+      <input type="text"     id="edit-login" placeholder="Login">
+      <input type="password" id="edit-senha" placeholder="Nova senha (deixe em branco para manter)">
+      <div class="modal-btns">
+        <button class="btn-confirmar" onclick="salvarEdicao()">Salvar</button>
+        <button class="btn-cancelar"  onclick="fecharEditar()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Verifica sessão
     const isAdmin = sessionStorage.getItem("admin") === "true";
     const logado  = sessionStorage.getItem("admin") !== null;
 
-    if (!logado) {
-      window.location.href = "/login.html";
-    }
+    if (!logado) window.location.href = "/login.html";
 
-    // Mostra elementos exclusivos do admin
     if (isAdmin) {
       document.getElementById("btnNovoUsuario").style.display = "block";
       document.getElementById("thAcao").style.display = "";
@@ -155,27 +164,25 @@
         const res      = await fetch("/usuarios");
         const usuarios = await res.json();
 
-        document.getElementById("totalUsuarios").innerText = usuarios.length + 1; // +1 pelo admin fixo
+        document.getElementById("totalUsuarios").innerText = usuarios.length + 1;
 
         const tbody = document.getElementById("tbody-usuarios");
 
-        const acoAdmin = isAdmin ? `<td>—</td>` : "";
         const adminRow = `
           <tr>
             <td>#0</td>
             <td>Administrador</td>
             <td>admin@sistema.com</td>
             <td>${badgePerfil("Administrador")}</td>
-            ${acoAdmin}
+            ${isAdmin ? "<td>—</td>" : ""}
           </tr>`;
 
         const linhas = usuarios.map(u => {
-          const acao = isAdmin
-            ? `<td class="acoes">
-                <button class="btn-editar"  onclick="abrirEditar(${u.usuario_id},'${u.nome}','${u.login}')">Editar</button>
-                <button class="btn-excluir" onclick="deletarUsuario(${u.usuario_id})">Excluir</button>
-               </td>`
-            : "";
+          const acao = isAdmin ? `
+            <td class="acoes">
+              <button class="btn-editar"  onclick="abrirEditar(${u.usuario_id},'${u.nome}','${u.login}')">Editar</button>
+              <button class="btn-excluir" onclick="deletarUsuario(${u.usuario_id})">Excluir</button>
+            </td>` : "";
           return `
             <tr>
               <td>#${u.usuario_id}</td>
@@ -187,16 +194,7 @@
         }).join("");
 
         tbody.innerHTML = adminRow + linhas;
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function deletarUsuario(id) {
-      if (!isAdmin) return; // segurança extra
-      if (!confirm("Deseja remover este usuário?")) return;
-      await fetch(`/usuarios/${id}`, { method: "DELETE" });
-      carregarUsuarios();
+      } catch (err) { console.error(err); }
     }
 
     async function cadastrarUsuario() {
@@ -211,6 +209,13 @@
         body: JSON.stringify({ nome, login, senha }),
       });
       fecharModal();
+      carregarUsuarios();
+    }
+
+    async function deletarUsuario(id) {
+      if (!isAdmin) return;
+      if (!confirm("Deseja remover este usuário?")) return;
+      await fetch(`/usuarios/${id}`, { method: "DELETE" });
       carregarUsuarios();
     }
 
@@ -231,22 +236,14 @@
       const nome  = document.getElementById("edit-nome").value.trim();
       const login = document.getElementById("edit-login").value.trim();
       const senha = document.getElementById("edit-senha").value;
-
       if (!nome || !login) { alert("Nome e login são obrigatórios."); return; }
-
       await fetch(`/usuarios/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome, login, senha: senha || undefined }),
       });
-
       fecharEditar();
       carregarUsuarios();
-    }
-
-    function sair() {
-      sessionStorage.clear();
-      window.location.href = "/login.html";
     }
 
     function abrirModal()  { document.getElementById("modal").style.display = "flex"; }
@@ -254,6 +251,8 @@
       document.getElementById("modal").style.display = "none";
       ["nome","login","senha"].forEach(id => document.getElementById(id).value = "");
     }
+
+    function sair() { sessionStorage.clear(); window.location.href = "/login.html"; }
 
     carregarUsuarios();
   </script>
