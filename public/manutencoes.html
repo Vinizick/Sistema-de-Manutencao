@@ -171,4 +171,256 @@
       <label style="color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0.05em">Data e Hora</label>
       <input type="datetime-local" id="man-data" style="margin-top:6px">
 
-      <label style="color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0
+      <label style="color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;display:block">Equipamento</label>
+      <select id="man-equipamento" style="margin-top:6px"><option value="">— Selecione —</option></select>
+
+      <label style="color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;display:block">Serviço</label>
+      <select id="man-servico" style="margin-top:6px"><option value="">— Selecione —</option></select>
+
+      <label style="color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;display:block">Valor (R$)</label>
+      <input type="number" id="man-valor" step="0.01" min="0" style="margin-top:6px" placeholder="Ex: 150.00">
+
+      <label style="color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;display:block">Laudo / Observações</label>
+      <textarea id="man-laudo" placeholder="Descreva o problema ou serviço realizado..." style="margin-top:6px"></textarea>
+
+      <label style="color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;display:block">Status</label>
+      <select id="man-status" style="margin-top:6px">
+        <option value="Em Espera">Em Espera</option>
+        <option value="Em Andamento">Em Andamento</option>
+        <option value="Finalizado">Finalizado</option>
+      </select>
+
+      <div class="modal-btns">
+        <button class="btn-confirmar" onclick="salvarMan()">Salvar</button>
+        <button class="btn-cancelar"  onclick="fechar('modal-man')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-serv">
+    <div class="modal-box">
+      <h2 id="tituloServ">Novo Serviço</h2>
+      <input type="hidden" id="serv-id">
+      <input type="text"   id="serv-desc"  placeholder="Descrição (ex: Troca de HD, Formatação)">
+      <input type="number" id="serv-valor" placeholder="Valor (R$)" step="0.01" min="0">
+      <div class="modal-btns">
+        <button class="btn-confirmar" onclick="salvarServ()">Salvar</button>
+        <button class="btn-cancelar"  onclick="fechar('modal-serv')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const isAdmin = sessionStorage.getItem("admin") === "true";
+    if (!sessionStorage.getItem("admin")) window.location.href = "/login.html";
+
+    let abaAtual = "historico";
+
+    if (isAdmin) {
+      document.getElementById("btnNovo").style.display  = "block";
+      document.getElementById("thAcaoH").textContent    = "Ações";
+      document.getElementById("thAcaoS").textContent    = "Ações";
+      document.getElementById("thAcaoC").textContent    = "Ações";
+    }
+
+    function trocarAba(aba, el) {
+      abaAtual = aba;
+      document.querySelectorAll(".aba").forEach(a => a.classList.remove("ativo"));
+      el.classList.add("ativo");
+      document.getElementById("painel-historico").style.display = aba === "historico" ? "" : "none";
+      document.getElementById("painel-chamados").style.display  = aba === "chamados"  ? "" : "none";
+      document.getElementById("painel-servicos").style.display  = aba === "servicos"  ? "" : "none";
+    }
+
+    function badgeStatus(status) {
+      const map = {
+        "Em Espera":    "badge-espera",
+        "Em Andamento": "badge-andamento",
+        "Finalizado":   "badge-finalizado",
+      };
+      return `<span class="badge ${map[status] || ''}">${status}</span>`;
+    }
+
+    function abrirModal() {
+      if (abaAtual === "historico" || abaAtual === "chamados") {
+        document.getElementById("tituloMan").textContent = "Registrar Manutenção";
+        document.getElementById("man-id").value    = "";
+        document.getElementById("man-data").value  = "";
+        document.getElementById("man-valor").value = "";
+        document.getElementById("man-laudo").value = "";
+        document.getElementById("man-status").value = "Em Espera";
+        document.getElementById("man-equipamento").value = "";
+        document.getElementById("man-servico").value     = "";
+        document.getElementById("modal-man").style.display = "flex";
+      } else {
+        document.getElementById("tituloServ").textContent = "Novo Serviço";
+        document.getElementById("serv-id").value    = "";
+        document.getElementById("serv-desc").value  = "";
+        document.getElementById("serv-valor").value = "";
+        document.getElementById("modal-serv").style.display = "flex";
+      }
+    }
+
+    function fechar(id) { document.getElementById(id).style.display = "none"; }
+
+    /* HISTÓRICO */
+    async function carregarHistorico() {
+      const res  = await fetch("/manutencoes");
+      const list = await res.json();
+      document.getElementById("totalMan").innerText = list.length;
+      
+      const emEspera = list.filter(m => m.status === 'Em Espera').length;
+      const finalizados = list.filter(m => m.status === 'Finalizado').length;
+      document.getElementById("totalEspera").innerText = emEspera;
+      document.getElementById("totalFinalizado").innerText = finalizados;
+
+      const tbody = document.getElementById("tbody-historico");
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:#475569">Nenhuma manutenção registrada.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(m => {
+        const dataFormatada = m.data ? new Date(m.data).toLocaleString('pt-BR') : '—';
+        const dataInputLocal = m.data ? m.data.substring(0, 16) : ''; // Formata para o datetime-local
+
+        const acao = isAdmin ? `<td class="acoes">
+          <button class="btn-editar" onclick="editarMan(${m.historico_id}, '${dataInputLocal}', '${m.laudo||''}', ${m.valor||0}, ${m.equipamento_id||null}, ${m.servico_id||null}, '${m.status||'Em Espera'}')">Editar</button>
+          <button class="btn-excluir" onclick="excluirMan(${m.historico_id})">Excluir</button>
+        </td>` : "<td></td>";
+        return `<tr>
+          <td>#${m.historico_id}</td>
+          <td>${dataFormatada}</td>
+          <td>${m.equipamento || '—'}</td>
+          <td>${m.servico || '—'}</td>
+          <td>${m.laudo || '—'}</td>
+          <td class="valor">R$ ${parseFloat(m.valor||0).toFixed(2)}</td>
+          <td>${badgeStatus(m.status || 'Em Espera')}</td>
+          ${acao}
+        </tr>`;
+      }).join("");
+    }
+
+    function editarMan(id, data, laudo, valor, equipamento_id, servico_id, status) {
+      document.getElementById("tituloMan").textContent = "Editar Manutenção";
+      document.getElementById("man-id").value    = id;
+      document.getElementById("man-data").value  = data;
+      document.getElementById("man-laudo").value = laudo;
+      document.getElementById("man-valor").value = valor;
+      document.getElementById("man-equipamento").value = equipamento_id || '';
+      document.getElementById("man-servico").value = servico_id || '';
+      document.getElementById("man-status").value = status || 'Em Espera';
+      document.getElementById("modal-man").style.display = "flex";
+    }
+
+    async function salvarMan() {
+      const id             = document.getElementById("man-id").value;
+      const data           = document.getElementById("man-data").value;
+      const equipamento_id = document.getElementById("man-equipamento").value;
+      const servico_id     = document.getElementById("man-servico").value;
+      const valor          = document.getElementById("man-valor").value;
+      const laudo          = document.getElementById("man-laudo").value.trim();
+      const status         = document.getElementById("man-status").value;
+
+      if (!data || !equipamento_id || !servico_id) { 
+        alert("Por favor, preencha a Data, o Equipamento e o Serviço."); 
+        return; 
+      }
+
+      const method = id ? "PUT" : "POST";
+      const url    = id ? `/manutencoes/${id}` : "/manutencoes";
+      await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          data, 
+          laudo, 
+          servico_id, 
+          equipamento_id, 
+          valor: parseFloat(valor || 0), 
+          status 
+        })
+      });
+      fechar("modal-man");
+      carregarHistorico();
+    }
+
+    async function excluirMan(id) {
+      if (!confirm("Excluir esta manutenção?")) return;
+      await fetch(`/manutencoes/${id}`, { method: "DELETE" });
+      carregarHistorico();
+    }
+
+    /* SERVIÇOS */
+    async function carregarServicos() {
+      const res  = await fetch("/servicos");
+      const list = await res.json();
+      document.getElementById("totalServ").innerText = list.length;
+      const tbody = document.getElementById("tbody-servicos");
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:#475569">Nenhum serviço cadastrado.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(s => {
+        const acao = isAdmin ? `<td class="acoes">
+          <button class="btn-editar"  onclick="editarServ(${s.servico_id},'${s.descricao}',${s.valor})">Editar</button>
+          <button class="btn-excluir" onclick="excluirServ(${s.servico_id})">Excluir</button>
+        </td>` : "<td></td>";
+        return `<tr>
+          <td>#${s.servico_id}</td>
+          <td>${s.descricao}</td>
+          <td class="valor">R$ ${parseFloat(s.valor).toFixed(2)}</td>
+          ${acao}
+        </tr>`;
+      }).join("");
+
+      // Popula select do modal de manutenção
+      const sel = document.getElementById("man-servico");
+      if(sel) {
+        sel.innerHTML = `<option value="">— Selecione o Serviço —</option>` + list.map(s => `<option value="${s.servico_id}">${s.descricao}</option>`).join("");
+      }
+    }
+
+    function editarServ(id, desc, valor) {
+      document.getElementById("tituloServ").textContent = "Editar Serviço";
+      document.getElementById("serv-id").value    = id;
+      document.getElementById("serv-desc").value  = desc;
+      document.getElementById("serv-valor").value = valor;
+      document.getElementById("modal-serv").style.display = "flex";
+    }
+
+    async function salvarServ() {
+      const id       = document.getElementById("serv-id").value;
+      const descricao = document.getElementById("serv-desc").value.trim();
+      const valor    = document.getElementById("serv-valor").value;
+      if (!descricao || !valor) { alert("Preencha todos os campos."); return; }
+      const method = id ? "PUT" : "POST";
+      const url    = id ? `/servicos/${id}` : "/servicos";
+      await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ descricao, valor }) });
+      fechar("modal-serv");
+      carregarServicos();
+    }
+
+    async function excluirServ(id) {
+      if (!confirm("Excluir este serviço?")) return;
+      await fetch(`/servicos/${id}`, { method: "DELETE" });
+      carregarServicos();
+    }
+
+    /* Popula equipamentos no select */
+    async function carregarEquipamentos() {
+      const res  = await fetch("/equipamentos");
+      const list = await res.json();
+      const sel  = document.getElementById("man-equipamento");
+      if(sel) {
+        sel.innerHTML = `<option value="">— Selecione o Equipamento —</option>` + list.map(e => `<option value="${e.equipamento_id}">${e.descricao}</option>`).join("");
+      }
+    }
+
+    function sair() { sessionStorage.clear(); window.location.href = "/login.html"; }
+
+    carregarHistorico();
+    carregarServicos();
+    carregarEquipamentos();
+  </script>
+</body>
+</html>
